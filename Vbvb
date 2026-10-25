@@ -1,0 +1,492 @@
+-- =========================================================================
+-- น้องเก้าไม่แจก - All-in-One Key System + MM2 Instant Death Stop Hub
+-- =========================================================================
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local LocalPlayer = Players.LocalPlayer
+
+if not LocalPlayer then return end
+
+-- =========================================================================
+-- ส่วนที่ 1: ระบบคีย์ประจำวัน (Key System UI)
+-- =========================================================================
+
+local CurrentDay = os.date("%A") -- ดึงชื่อวันปัจจุบันของระบบ
+local CorrectKey = ""
+
+-- กำหนดคีย์ตามวันทั้ง 7 วัน
+if CurrentDay == "Saturday" then
+    CorrectKey = "rrtttt156"
+elseif CurrentDay == "Sunday" then
+    CorrectKey = "ryryry156"
+elseif CurrentDay == "Monday" then
+    CorrectKey = "gghhvv"
+elseif CurrentDay == "Tuesday" then
+    CorrectKey = "yyuuii"
+elseif CurrentDay == "Wednesday" then
+    CorrectKey = "kjkj910"
+elseif CurrentDay == "Thursday" then
+    CorrectKey = "supophon19"
+elseif CurrentDay == "Friday" then
+    CorrectKey = "kokop"
+end
+
+-- ตารางคีย์ทั้งหมดสำหรับให้กดปุ่มคัดลอกส่งให้เพื่อนดู
+local AllKeysText = [[
+🔑 ตารางคีย์สคริปต์ "น้องเก้าไม่แจก":
+- วันจันทร์: gghhvv
+- วันอังคาร: yyuuii
+- วันพุธ: kjkj910
+- วันพฤหัสบดี: supophon19
+- วันศุกร์: kokop
+- วันเสาร์: rrtttt156
+- วันอาทิตย์: ryryry156
+]]
+
+-- ลบ UI ระบบคีย์เก่าทิ้งกันซ้ำซ้อน
+if CoreGui:FindFirstChild("Kao_Key_Hub") then
+    CoreGui.Kao_Key_Hub:Destroy()
+end
+
+local KeyScreenGui = Instance.new("ScreenGui")
+KeyScreenGui.Name = "Kao_Key_Hub"
+KeyScreenGui.ResetOnSpawn = false
+KeyScreenGui.Parent = CoreGui
+
+-- กรอบใส่คีย์หลัก
+local KeyFrame = Instance.new("Frame")
+KeyFrame.Size = UDim2.new(0, 300, 0, 210)
+KeyFrame.Position = UDim2.new(0.5, -150, 0.5, -105)
+KeyFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+KeyFrame.Active = true
+KeyFrame.Draggable = true
+KeyFrame.Parent = KeyScreenGui
+Instance.new("UICorner", KeyFrame).CornerRadius = UDim.new(0, 10)
+
+local KeyTitle = Instance.new("TextLabel")
+KeyTitle.Size = UDim2.new(1, 0, 0, 25)
+KeyTitle.Position = UDim2.new(0, 0, 0, 10)
+KeyTitle.BackgroundTransparency = 1
+KeyTitle.Text = "🔑 น้องเก้าไม่แจก - ระบบคีย์"
+KeyTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+KeyTitle.Font = Enum.Font.SourceSansBold
+KeyTitle.TextSize = 18
+KeyTitle.Parent = KeyFrame
+
+local DayLabel = Instance.new("TextLabel")
+DayLabel.Size = UDim2.new(1, 0, 0, 20)
+DayLabel.Position = UDim2.new(0, 0, 0, 35)
+DayLabel.BackgroundTransparency = 1
+DayLabel.Text = "📅 วันนี้วัน: " .. CurrentDay
+DayLabel.TextColor3 = Color3.fromRGB(0, 255, 170)
+DayLabel.Font = Enum.Font.SourceSans
+DayLabel.TextSize = 14
+DayLabel.Parent = KeyFrame
+
+local KeyBox = Instance.new("TextBox")
+KeyBox.Size = UDim2.new(0.8, 0, 0, 35)
+KeyBox.Position = UDim2.new(0.1, 0, 0.32, 0)
+KeyBox.BackgroundColor3 = Color3.fromRGB(40, 40, 48)
+KeyBox.PlaceholderText = "กรอกคีย์ของวันนี้ที่นี่..."
+KeyBox.Text = ""
+KeyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+KeyBox.Font = Enum.Font.SourceSans
+KeyBox.TextSize = 16
+KeyBox.Parent = KeyFrame
+Instance.new("UICorner", KeyBox).CornerRadius = UDim.new(0, 6)
+
+local CheckBtn = Instance.new("TextButton")
+CheckBtn.Size = UDim2.new(0.8, 0, 0, 35)
+CheckBtn.Position = UDim2.new(0.1, 0, 0.55, 0)
+CheckBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 100)
+CheckBtn.Text = "เข้าใช้งาน (Submit)"
+CheckBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CheckBtn.Font = Enum.Font.SourceSansBold
+CheckBtn.TextSize = 16
+CheckBtn.Parent = KeyFrame
+Instance.new("UICorner", CheckBtn).CornerRadius = UDim.new(0, 6)
+
+local CopyAllBtn = Instance.new("TextButton")
+CopyAllBtn.Size = UDim2.new(0.8, 0, 0, 32)
+CopyAllBtn.Position = UDim2.new(0.1, 0, 0.77, 0)
+CopyAllBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+CopyAllBtn.Text = "📋 คัดลอกตารางคีย์ทั้งหมด 7 วัน"
+CopyAllBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CopyAllBtn.Font = Enum.Font.SourceSansBold
+CopyAllBtn.TextSize = 13
+CopyAllBtn.Parent = KeyFrame
+Instance.new("UICorner", CopyAllBtn).CornerRadius = UDim.new(0, 6)
+
+-- ปุ่มคัดลอกตารางคีย์
+CopyAllBtn.MouseButton1Click:Connect(function()
+    if setclipboard then
+        setclipboard(AllKeysText)
+        CopyAllBtn.Text = "✅ คัดลอกตารางคีย์แล้ว!"
+        task.wait(2.5)
+        CopyAllBtn.Text = "📋 คัดลอกตารางคีย์ทั้งหมด 7 วัน"
+    else
+        CopyAllBtn.Text = "❌ ไม่รองรับการคัดลอก"
+    end
+end)
+
+-- ฟังก์ชันเมื่อใส่คีย์ถูกต้อง จะเปิดโหลดสคริปต์หลักของคุณเก้า
+CheckBtn.MouseButton1Click:Connect(function()
+    if KeyBox.Text == CorrectKey then
+        CheckBtn.Text = "คีย์ถูกต้อง! กำลังเปิดเมนู..."
+        CheckBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+        task.wait(0.8)
+        KeyScreenGui:Destroy() -- ปิดหน้าต่างคีย์ทิ้ง
+        
+        -- เรียกใช้งานฟังก์ชันโหลดสคริปต์หลัก MM2
+        LoadMainScript()
+    else
+        CheckBtn.Text = "คีย์ไม่ถูกต้อง!"
+        CheckBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+        task.wait(1.2)
+        CheckBtn.Text = "เข้าใช้งาน (Submit)"
+        CheckBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 100)
+    end
+end)
+
+
+-- =========================================================================
+-- ส่วนที่ 2: สคริปต์หลัก "น้องเก้าไม่แจก" (MM2 Instant Death Stop Edition)
+-- =========================================================================
+
+function LoadMainScript()
+    -- ลบ UI หลักเก่าทิ้งกันซ้ำซ้อน
+    if CoreGui:FindFirstChild("MM2_Safe_Hub") then
+        CoreGui.MM2_Safe_Hub:Destroy()
+    end
+
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "MM2_Safe_Hub"
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.Parent = CoreGui
+
+    -- หน้าต่างหลัก UI
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Size = UDim2.new(0, 260, 0, 270)
+    MainFrame.Position = UDim2.new(0.5, -130, 0.5, -135)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    MainFrame.Active = true
+    MainFrame.Draggable = true
+    MainFrame.Parent = ScreenGui
+    Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
+
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, 0, 0, 35)
+    Title.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    Title.Text = "น้องเก้าไม่แจก"
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.Font = Enum.Font.SourceSansBold
+    Title.TextSize = 15
+    Title.Parent = MainFrame
+    Instance.new("UICorner", Title).CornerRadius = UDim.new(0, 10)
+
+    -- ปุ่มซ่อน/เปิด UI (Mini Toggle Button)
+    local ToggleUIBtn = Instance.new("TextButton")
+    ToggleUIBtn.Size = UDim2.new(0, 45, 0, 45)
+    ToggleUIBtn.Position = UDim2.new(0.02, 0, 0.1, 0)
+    ToggleUIBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    ToggleUIBtn.Text = "UI"
+    ToggleUIBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ToggleUIBtn.Font = Enum.Font.SourceSansBold
+    ToggleUIBtn.TextSize = 14
+    ToggleUIBtn.Parent = ScreenGui
+    Instance.new("UICorner", ToggleUIBtn).CornerRadius = UDim.new(0, 8)
+
+    ToggleUIBtn.MouseButton1Click:Connect(function()
+        MainFrame.Visible = not MainFrame.Visible
+    end)
+
+    -- ตัวแปรสถานะ
+    local ESPEnabled = false
+    local MasterSwitch = false
+    local isPlayerDead = false -- ตัวแปรเช็คความตายแบบแยกอิสระ
+
+    -- ฟังก์ชันดักจับความตายจาก Humanoid และ Character โดยตรง
+    local function setupDeathCheck(char)
+        isPlayerDead = false
+        local humanoid = char:WaitForChild("Humanoid", 3)
+        if humanoid then
+            humanoid.Died:Connect(function()
+                isPlayerDead = true
+            end)
+            humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+                if humanoid.Health <= 0 then
+                    isPlayerDead = true
+                end
+            end)
+        end
+    end
+
+    if LocalPlayer.Character then
+        setupDeathCheck(LocalPlayer.Character)
+    end
+    LocalPlayer.CharacterAdded:Connect(setupDeathCheck)
+
+    -- ฟังก์ชันเช็คสถานะตัวละครตาย (เช็คควบรวมทั้งตัวแปรอิสระและ Humanoid)
+    local function checkIsDead()
+        if isPlayerDead then return true end
+        local char = LocalPlayer.Character
+        if not char then return true end
+        local humanoid = char:FindFirstChildOfClass("Humanoid")
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if not humanoid or not hrp or humanoid.Health <= 0 then
+            return true
+        end
+        return false
+    end
+
+    -- ฟังก์ชันวาร์ปกลับ Lobby ทันทีเมื่อตาย
+    local function forceTeleportLobby()
+        pcall(function()
+            local char = LocalPlayer.Character
+            if char and char:FindFirstChild("HumanoidRootPart") then
+                local lobby = workspace:FindFirstChild("Lobby") or workspace:FindFirstChild("LobbyModel")
+                if lobby then
+                    char.HumanoidRootPart.CFrame = lobby:GetPivot() + Vector3.new(0, 5, 0)
+                else
+                    char.HumanoidRootPart.CFrame = CFrame.new(0, 100, 0)
+                end
+            end
+        end)
+    end
+
+    -- ปุ่มที่ 1: ESP
+    local ESPBtn = Instance.new("TextButton")
+    ESPBtn.Size = UDim2.new(0.9, 0, 0, 40)
+    ESPBtn.Position = UDim2.new(0.05, 0, 0.16, 0)
+    ESPBtn.BackgroundColor3 = Color3.fromRGB(200, 35, 35)
+    ESPBtn.Text = "ESP มองเห็นบทบาท: ปิด"
+    ESPBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ESPBtn.Font = Enum.Font.SourceSansBold
+    ESPBtn.TextSize = 14
+    ESPBtn.Parent = MainFrame
+    Instance.new("UICorner", ESPBtn).CornerRadius = UDim.new(0, 6)
+
+    -- ปุ่มที่ 2: ระบบออโต้ทั้งหมด
+    local AutoBtn = Instance.new("TextButton")
+    AutoBtn.Size = UDim2.new(0.9, 0, 0, 40)
+    AutoBtn.Position = UDim2.new(0.05, 0, 0.40, 0)
+    AutoBtn.BackgroundColor3 = Color3.fromRGB(200, 35, 35)
+    AutoBtn.Text = "ระบบออโต้ทั้งหมด: ปิด"
+    AutoBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    AutoBtn.Font = Enum.Font.SourceSansBold
+    AutoBtn.TextSize = 14
+    AutoBtn.Parent = MainFrame
+    Instance.new("UICorner", AutoBtn).CornerRadius = UDim.new(0, 6)
+
+    -- สถานะแสดงผล
+    local StatusLabel = Instance.new("TextLabel")
+    StatusLabel.Size = UDim2.new(0.9, 0, 0, 75)
+    StatusLabel.Position = UDim2.new(0.05, 0, 0.62, 0)
+    StatusLabel.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    StatusLabel.Text = "สถานะ: พร้อมใช้งาน\n(น้องเก้าไม่แจก)"
+    StatusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    StatusLabel.Font = Enum.Font.SourceSans
+    StatusLabel.TextSize = 13
+    StatusLabel.Parent = MainFrame
+    Instance.new("UICorner", StatusLabel).CornerRadius = UDim.new(0, 6)
+
+    -- ฟังก์ชันเช็คกระเป๋าเต็ม
+    local function isBagFull()
+        pcall(function()
+            local stats = LocalPlayer:FindFirstChild("PlayerGui") and LocalPlayer.PlayerGui:FindFirstChild("MainGUI")
+            if stats and stats:FindFirstChild("Game") and stats.Game:FindFirstChild("CoinBar") then
+                local coinBar = stats.Game.CoinBar
+                if coinBar:FindFirstChild("TextLabel") then
+                    local txt = coinBar.TextLabel.Text
+                    local current, max = txt:match("(%d+)/(%d+)")
+                    if current and max and tonumber(current) >= tonumber(max) then
+                        return true
+                    end
+                end
+            end
+        end)
+        return false
+    end
+
+    -- ฟังก์ชันเช็คบทบาท
+    local function isMurderer()
+        local char = LocalPlayer.Character
+        local backpack = LocalPlayer:FindFirstChild("Backpack")
+        return (char and char:FindFirstChild("Knife")) or (backpack and backpack:FindFirstChild("Knife"))
+    end
+
+    local function isSheriff()
+        local char = LocalPlayer.Character
+        local backpack = LocalPlayer:FindFirstChild("Backpack")
+        return (char and char:FindFirstChild("Gun")) or (backpack and backpack:FindFirstChild("Gun"))
+    end
+
+    -- ฟังก์ชันเช็คห้องล็อบบี้
+    local function isInLobby()
+        if checkIsDead() then return true end
+        local hasCandy = false
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj.Name == "CoinContainer" or obj.Name == "Candy" or obj.Name == "Coin" then
+                hasCandy = true
+                break
+            end
+        end
+        return not hasCandy
+    end
+
+    -- ฟังก์ชันหาระยะห่างจากฆาตกร (ระยะ 15 เมตร)
+    local function getNearbyMurderer(hrp)
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= LocalPlayer and plr.Character then
+                local char = plr.Character
+                local backpack = plr:FindFirstChild("Backpack")
+                local hasKnife = char:FindFirstChild("Knife") or (backpack and backpack:FindFirstChild("Knife"))
+                local targetHRP = char:FindFirstChild("HumanoidRootPart")
+                local humanoid = char:FindFirstChildOfClass("Humanoid")
+                if hasKnife and targetHRP and humanoid and humanoid.Health > 0 then
+                    local distance = (hrp.Position - targetHRP.Position).Magnitude
+                    if distance <= 15 then
+                        return targetHRP
+                    end
+                end
+            end
+        end
+        return nil
+    end
+
+    -- ฟังก์ชันหาลูกกวาดชิ้นถัดไป
+    local function getTargetCandy()
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj.Name == "CoinContainer" or obj.Name == "Candy" or obj.Name == "Coin" then
+                local part = obj:IsA("BasePart") and obj or obj:FindFirstChildWhichIsA("BasePart")
+                if part and part.Parent then
+                    return part
+                end
+            end
+        end
+        return nil
+    end
+
+    -- ฟังก์ชันหาเหยื่อสำหรับฆาตกร
+    local function getTargetPlayer()
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                local humanoid = plr.Character:FindFirstChildOfClass("Humanoid")
+                if humanoid and humanoid.Health > 0 then
+                    return plr.Character.HumanoidRootPart, plr.Character
+                end
+            end
+        end
+        return nil, nil
+    end
+
+    -- ฟังก์ชันหาตัวฆาตกรสำหรับนายอำเภอ
+    local function getMurdererPlayer()
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= LocalPlayer and plr.Character then
+                local char = plr.Character
+                local backpack = plr:FindFirstChild("Backpack")
+                local hasKnife = char:FindFirstChild("Knife") or (backpack and backpack:FindFirstChild("Knife"))
+                local hrp = char:FindFirstChild("HumanoidRootPart")
+                local humanoid = char:FindFirstChildOfClass("Humanoid")
+                if hasKnife and hrp and humanoid and humanoid.Health > 0 then
+                    return hrp, char
+                end
+            end
+        end
+        return nil, nil
+    end
+
+    -- เปิด/ปิดระบบออโต้
+    AutoBtn.MouseButton1Click:Connect(function()
+        MasterSwitch = not MasterSwitch
+        if MasterSwitch then
+            AutoBtn.Text = "ระบบออโต้ทั้งหมด: เปิด"
+            AutoBtn.BackgroundColor3 = Color3.fromRGB(35, 180, 35)
+        else
+            AutoBtn.Text = "ระบบออโต้ทั้งหมด: ปิด"
+            AutoBtn.BackgroundColor3 = Color3.fromRGB(200, 35, 35)
+            StatusLabel.Text = "สถานะ: ปิดการทำงาน"
+        end
+    end)
+
+    -- ลูปหลักการทำงานออโต้ ("น้องเก้าไม่แจก")
+    task.spawn(function()
+        while true do
+            task.wait(0.1)
+            if MasterSwitch then
+                if checkIsDead() then
+                    StatusLabel.Text = "สถานะ: คุณตายแล้ว (วาร์ปกลับ Lobby ทันที!)"
+                    forceTeleportLobby()
+                    task.wait(0.5)
+                elseif isInLobby() then
+                    StatusLabel.Text = "สถานะ: อยู่ในล็อบบี้ (รอเริ่มเกม...)"
+                    task.wait(1)
+                else
+                    local char = LocalPlayer.Character
+                    if char and char:FindFirstChild("HumanoidRootPart") and char:FindFirstChildOfClass("Humanoid") then
+                        local hrp = char.HumanoidRootPart
+                        local humanoid = char:FindFirstChildOfClass("Humanoid")
+
+                        if checkIsDead() then continue end
+
+                        -- 1. นายอำเภอ
+                        if isSheriff() then
+                            StatusLabel.Text = "Status: [นายอำเภอ] ล็อคเป้าและยิงฆาตกร!"
+                            local gun = LocalPlayer.Backpack:FindFirstChild("Gun")
+                            if gun then gun.Parent = char end
+                            
+                            local murdererHRP, murdererChar = getMurdererPlayer()
+                            if murdererHRP and not checkIsDead() then
+                                hrp.CFrame = CFrame.new(murdererHRP.Position + Vector3.new(0, 2, 10), murdererHRP.Position)
+                                local tool = char:FindFirstChildOfClass("Tool")
+                                if tool and (tool.Name:lower():find("gun") or tool:FindFirstChild("Gun")) then
+                                    pcall(function()
+                                        tool:Activate()
+                                        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+                                        task.wait(0.05)
+                                        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+                                    end)
+                                end
+                            end
+
+                        -- 2. ฆาตกร
+                        elseif isMurderer() then
+                            StatusLabel.Text = "Status: [ฆาตกร] ไล่ล่าเหยื่อทีละคนอย่างไว!"
+                            local knife = LocalPlayer.Backpack:FindFirstChild("Knife")
+                            if knife then knife.Parent = char end
+                            
+                            local targetHRP, targetChar = getTargetPlayer()
+                            if targetHRP and not checkIsDead() then
+                                hrp.CFrame = CFrame.new(targetHRP.Position + Vector3.new(0, 0, 2), targetHRP.Position)
+                                local tool = char:FindFirstChildOfClass("Tool")
+                                if tool then
+                                    pcall(function()
+                                        tool:Activate()
+                                        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+                                        task.wait(0.05)
+                                        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+                                    end)
+                                end
+                            end
+
+                        -- 3. ผู้บริสุทธิ์
+                        else
+                            if isBagFull() then
+                                StatusLabel.Text = "Status: [กระเป๋าเต็ม!] หยุดฟาร์มชั่วคราว"
+                                task.wait(1)
+                            else
+                                local dangerMurderer = getNearbyMurderer(hrp)
+                                if dangerMurderer then
+                                    StatusLabel.Text = "Status: [อันตราย!] ฆาตกรเข้าใกล้ 15ม. กำลังวาร์ปหนี!"
+                                    local escapeDir = (hrp.Position - dangerMurderer.Position).Unit
+                                    hrp.CFrame = CFrame.new(hrp.Position + (escapeDir * 35) + Vector3.new(0, 3, 0))
+                                    task.wait(0.2)
+                                else
+                                    StatusLabel.Text = "Status: [ผู้บริสุทธิ์] กำลังออโต้เก็บลูกกวาด..."
+                                    local candyPart = getTargetCandy()
+                                    if candyPart and not checkIsDead() then
+          
